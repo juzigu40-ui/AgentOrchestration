@@ -1,4 +1,3 @@
-import pytest
 from src.common.metrics import MetricsCollector
 
 
@@ -30,6 +29,19 @@ class TestMetricsCollector:
         time.sleep(0.01)
         duration = self.metrics.stop_timer("operation")
         assert duration > 0.005
+        snapshot = self.metrics.snapshot()
+        assert snapshot["histograms"]["operation"]["count"] == 1
+        assert snapshot["active_timers"] == 0
+
+    def test_snapshot_reports_active_timer_count_without_names(self):
+        self.metrics.start_timer("operation")
+        self.metrics.start_timer("health_check")
+
+        snapshot = self.metrics.snapshot()
+
+        assert snapshot["active_timers"] == 2
+        assert "operation" not in snapshot
+        assert "health_check" not in snapshot
 
 # 2019-07-16T09:29:21 update
 
